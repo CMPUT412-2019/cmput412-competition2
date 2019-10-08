@@ -8,7 +8,7 @@ from smach import StateMachine
 from smach_ros import IntrospectionServer
 
 
-forward_speed = 0.8
+forward_speed = 0.4
 
 
 def white_filter(hsv):  # type: (np.ndarray) -> np.ndarray

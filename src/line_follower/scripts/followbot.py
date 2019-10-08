@@ -14,7 +14,7 @@ from state.stopped import StoppedState
 
 
 def make_realcourse_follow_state():
-    forward_speed = 0.8
+    forward_speed = 0.4
     line_filter = lambda hsv: cv2.inRange(hsv, np.array([0,  0,  200]), np.array([255, 50, 255]))
     stop_filter = (lambda hsv: cv2.inRange(hsv, np.asarray([0, 70, 50]), np.asarray([10, 255, 250])) |
                                 cv2.inRange(hsv, np.asarray([170, 70, 50]), np.asarray([180, 255, 250])))
