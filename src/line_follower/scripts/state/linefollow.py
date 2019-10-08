@@ -8,50 +8,49 @@ import cv_bridge
 import numpy as np
 
 
-class StopBehavior:
+class TransitionBehaviour:
+    def __init__(self):
+        pass
+
+    def init(self):
+        pass
+
     def tick(self, hsv):
         pass
 
 
-class FilterStopBehavior:
-    def __init__(self, stop_filter):
-        self.saw_stopline = False
-        self.stop_filter = stop_filter
+class TransitionAfter(TransitionBehaviour):
+    def __init__(self, func):
+        TransitionBehaviour.__init__(self)
+
+        self.func = func
+        self.transitioning = False
+
+    def init(self):
+        self.transitioning = False
 
     def tick(self, hsv):
-        stop_mask = self.get_eye_mask(hsv) & self.stop_filter(hsv)
+        transitioning = self.func(hsv)
 
-        stop_mask_empty = np.sum(stop_mask) < 300
-        if self.saw_stopline and stop_mask_empty:
+        if self.transitioning and not transitioning:
+            self.transitioning = False
             return False
         else:
-            self.saw_stopline = not stop_mask_empty
-
-        cv2.imshow('stop_mask', stop_mask * 255)
-        return True
-
-    @staticmethod
-    def get_eye_mask(hsv):
-        h, w, d = hsv.shape
-        search_top = int(1.5 * h / 4 - 20)
-        search_bot = int(1.5 * h / 4)
-        eye_mask = np.ones((h, w), dtype=bool)
-        eye_mask[0:search_top, 0:w] = False
-        eye_mask[search_bot:h, 0:w] = False
-        return eye_mask
+            self.transitioning = transitioning
+            return True
 
 
 class LineFollowState(State):
     class StopError(Exception):
         pass
 
-    def __init__(self, forward_speed, line_filter, stop_detector):
-        State.__init__(self, outcomes=['ok', 'stop'])
+    def __init__(self, forward_speed, line_filter, transition_behaviour):
+        State.__init__(self, outcomes=['ok'])
 
         self.forward_speed = forward_speed
         self.line_filter = line_filter
 
-        self.stop_detector = stop_detector  # type: StopBehavior
+        self.transition_behaviour = transition_behaviour  # type: TransitionBehaviour
 
         self.bridge = cv_bridge.CvBridge()
         self.twist = Twist()
@@ -71,13 +70,14 @@ class LineFollowState(State):
 
     def execute(self, ud):
         self.wait_for_image()
+        self.transition_behaviour.init()
 
         try:
             while True:
                 self.tick()
                 self.rate.sleep()
         except self.StopError:
-            return 'stop'
+            return 'ok'
 
     def tick(self):
         image = np.copy(self.image)
@@ -87,7 +87,7 @@ class LineFollowState(State):
         line_mask = self.line_filter(hsv) & eye_mask
 
         # Check for stopping condition
-        if not self.stop_detector.tick(hsv):
+        if not self.transition_behaviour.tick(hsv):
             raise self.StopError()
 
         # Line following
