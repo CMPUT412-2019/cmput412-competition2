@@ -3,9 +3,10 @@ from typing import Any, Callable, Optional
 
 
 class SubscriberValue:
-    def __init__(self, name, data_class, queue_size=1, transform=None):  # type: (str, Any, int, Optional[Callable[[Any], Any]) -> None
+    def __init__(self, name, data_class, wait=True, queue_size=1, transform=None):  # type: (str, Any, bool, int, Optional[Callable[[Any], Any]]) -> None
         self._subscriber = rospy.Subscriber(name, data_class, callback=self._callback, queue_size=queue_size)
         self._topic = name
+        self._wait = wait
         self._transform = transform
         self._value = None
 
@@ -23,4 +24,6 @@ class SubscriberValue:
 
     @property
     def value(self):
+        if self._wait:
+            self.wait()
         return self._value

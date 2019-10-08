@@ -11,4 +11,7 @@
         <remap from="mobile_base/odom" to="mobile_base/odom" />
         <remap from="pose2d" to="/pose2d" />
     </node>
+
+    <!-- Service to convert between camera pixels and real-world points -->
+    <node pkg="line_follower" type="cam_pixel_to_point.py" name="cam_pixel_to_point" />
 </launch>
