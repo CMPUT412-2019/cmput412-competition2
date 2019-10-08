@@ -1,3 +1,6 @@
+import cv2
+import numpy as np
+
 
 class Feature:
     def __init__(self, shape, colour, centroid, contour):  # type: (str, str, np.ndarray, np.ndarray) -> None
@@ -8,15 +11,8 @@ class Feature:
 
 
 class FeatureDetector:
-    Contour = np.ndarray
-    Hsv = np.ndarray
-    Mask = np.ndarray
-    ShapeDetector = Callable[[Contour, Mask], str]
-    ColourMasker = Callable[[Hsv], Mask]
-
     def __init__(self):
-        self.shape_detectors = []  # type: List[FeatureDetector.ShapeDetector]
-        self.color_maskers = []  # type: List[FeatureDetector.ColourMasker]
+        pass
 
     def find_features(self, image):  # type: (np.ndarray) -> List[Feature]
         features = []
