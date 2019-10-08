@@ -10,7 +10,7 @@ import numpy as np
 import time
 
 from state.linefollow import LineFollowState, FilterStopBehavior
-from state.stopped import StoppedState
+from state.stop import StoppedState
 
 
 def make_realcourse_follow_state():

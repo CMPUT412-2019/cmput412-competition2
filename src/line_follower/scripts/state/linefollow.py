@@ -34,20 +34,34 @@ class TransitionAfter(TransitionBehaviour):
 
         if self.transitioning and not transitioning:
             self.transitioning = False
-            return False
+            return True
         else:
             self.transitioning = transitioning
+            return False
+
+
+class TransitionAt(TransitionBehaviour):
+    def __init__(self, func):
+        TransitionBehaviour.__init__(self)
+
+        self.func = func
+
+    def tick(self, hsv):
+        if self.func(hsv):
             return True
+        else:
+            return False
 
 
 class LineFollowState(State):
     class StopError(Exception):
         pass
 
-    def __init__(self, forward_speed, line_filter, transition_behaviour):
+    def __init__(self, forward_speed, angle_controller, line_filter, transition_behaviour):
         State.__init__(self, outcomes=['ok'])
 
         self.forward_speed = forward_speed
+        self.angle_controller = angle_controller
         self.line_filter = line_filter
 
         self.transition_behaviour = transition_behaviour  # type: TransitionBehaviour
@@ -55,8 +69,7 @@ class LineFollowState(State):
         self.bridge = cv_bridge.CvBridge()
         self.twist = Twist()
         self.image_sub = rospy.Subscriber('usb_cam_node/image_raw', Image, self.image_callback)
-        self.angle_error_pub = rospy.Publisher('angle_error', Float64, queue_size=1)
-        self.linear_error_pub = rospy.Publisher('linear_error', Float64, queue_size=1)
+        self.twist_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
 
         self.rate = rospy.Rate(10)
         self.image = None
@@ -87,7 +100,7 @@ class LineFollowState(State):
         line_mask = self.line_filter(hsv) & eye_mask
 
         # Check for stopping condition
-        if not self.transition_behaviour.tick(hsv):
+        if self.transition_behaviour.tick(hsv):
             raise self.StopError()
 
         # Line following
@@ -96,8 +109,10 @@ class LineFollowState(State):
             cv2.circle(image, (cx, cy), 20, (0, 0, 255), -1)
             err = (cx - image.shape[1] / 2) / float(image.shape[1])
 
-            self.linear_error_pub.publish(-self.forward_speed * (1. - abs(err)))
-            self.angle_error_pub.publish(err)
+            t = Twist()
+            t.linear.x = self.forward_speed * (1. - abs(err))
+            t.angular.z = self.angle_controller.get(err)
+            self.twist_pub.publish(t)
 
         # Display
         cv2.imshow('main_camera', image)
