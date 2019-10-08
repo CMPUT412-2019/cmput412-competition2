@@ -9,6 +9,9 @@ import numpy as np
 
 
 class StopBehavior:
+    def init(self):
+        pass
+
     def tick(self, hsv):
         pass
 
@@ -17,6 +20,9 @@ class FilterStopBehavior:
     def __init__(self, stop_filter):
         self.saw_stopline = False
         self.stop_filter = stop_filter
+
+    def init(self):
+        self.saw_stopline = False
 
     def tick(self, hsv):
         stop_mask = self.get_eye_mask(hsv) & self.stop_filter(hsv)
@@ -71,6 +77,7 @@ class LineFollowState(State):
 
     def execute(self, ud):
         self.wait_for_image()
+        self.stop_detector.init()
 
         try:
             while True:
