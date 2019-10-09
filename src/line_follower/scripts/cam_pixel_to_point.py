@@ -64,6 +64,7 @@ class CamPixelToPointServer:
         point_along_ray.header.frame_id = self.camera_model.tfFrame()
         point_along_ray.point.x, point_along_ray.point.y, point_along_ray.point.z = self.camera_model.projectPixelTo3dRay((x, y))
 
+        self.tf_listener.waitForTransform('base_footprint', self.camera_model.tfFrame(), rospy.Time(rospy.get_time()), rospy.Duration(1))
         camera_origin = self.tf_listener.transformPoint('base_footprint', camera_origin)
         point_along_ray = self.tf_listener.transformPoint('base_footprint', point_along_ray)
 
