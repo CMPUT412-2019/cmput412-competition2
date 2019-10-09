@@ -69,7 +69,7 @@ class FeatureDetector:
 
     @staticmethod
     def green_mask(hsv):  # type: (np.ndarray) -> np.ndarray
-        return cv2.inRange(hsv, np.asarray([40, 70, 50]), np.asarray([80, 255, 250])) > 0.0
+        return cv2.inRange(hsv, np.asarray([40, 70, 50]), np.asarray([90, 255, 250])) > 0.0
 
     @staticmethod
     def col_name_to_rgb(colour):  # type: (str) -> Tuple[int, int, int]
