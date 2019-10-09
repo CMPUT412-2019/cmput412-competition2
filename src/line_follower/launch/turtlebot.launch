@@ -1,7 +1,6 @@
 <launch>
     <include file="$(find turtlebot_bringup)/launch/minimal.launch"></include>
-    <!--<include file="$(find openni2_launch)/launch/openni2.launch"></include>
-    -->
+    <include file="$(find openni2_launch)/launch/openni2.launch"></include>
     <node pkg="usb_cam" type="usb_cam_node" name="usb_cam_node">
         <param name="video_device" value="/dev/video2"/>
     </node>
@@ -13,5 +12,14 @@
     </node>
 
     <!-- Service to convert between camera pixels and real-world points -->
-    <node pkg="line_follower" type="cam_pixel_to_point.py" name="cam_pixel_to_point" />
+    <node pkg="line_follower" type="cam_pixel_to_point.py" name="cam_pixel_to_point">
+        <param name="in_simulator" value="false" />
+    </node>
+
+    <!-- Convert camera to laser scan -->
+    <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan">
+        <remap from="image" to="/camera/depth/image_raw" />
+        <remap from="camera_info" to="/camera/depth/camera_info" />
+        <remap from="scan" to="/scan" />
+  </node>
 </launch>
