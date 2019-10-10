@@ -1,7 +1,12 @@
+#!/usr/bin/env python
+
 from state.linefollow import LineFollowState, TransitionAfter, TransitionAt
 from state.stop import StopState
 from state.rotate import RotateState
 from state.forward import ForwardState
+from state.location1 import Location1State
+from state.location2 import Location2State
+from state.location3 import Location3State
 from pid_control import PIDController
 from util import ProximityDetector
 
@@ -10,6 +15,11 @@ import numpy as np
 import cv2
 from smach import Sequence
 from smach_ros import IntrospectionServer
+
+
+class UserData:
+    def __init__(self):
+        self.green_shape = None
 
 
 forward_speed = 0.4
@@ -50,6 +60,7 @@ def red_lower_detector(hsv):  # type: (np.ndarray) -> np.ndarray
 
 rospy.init_node('competition2')
 
+ud = UserData()
 
 sq = Sequence(outcomes=['ok'], connector_outcome='ok')
 
@@ -60,6 +71,7 @@ with sq:
 
     # Location 1
     Sequence.add('TURN1', RotateState(np.pi / 2))
+    Sequence.add('LOCATION1', Location1State())
     Sequence.add('TURN2', RotateState(-np.pi / 2))
 
     # Forward until split
@@ -77,6 +89,7 @@ with sq:
 
     # Location 2
     Sequence.add('STOP4', StopState(1))
+    Sequence.add('LOCATION2', Location2State(ud))
     Sequence.add('TURN4', RotateState(np.pi))
 
     # Forward until split
@@ -97,22 +110,26 @@ with sq:
     Sequence.add('FOLLOW8', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_lower_detector)))
     Sequence.add('STOP8', StopState())
     Sequence.add('TURN8', RotateState(np.pi / 2))
+    Sequence.add('LOCATION3_1', Location3State(ud))
     Sequence.add('TURN8_2', RotateState(-np.pi / 2))
 
     # Location 3, part 2
     Sequence.add('FOLLOW9', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_lower_detector)))
     Sequence.add('STOP9', StopState())
     Sequence.add('TURN9', RotateState(np.pi / 2))
+    Sequence.add('LOCATION3_2', Location3State(ud))
     Sequence.add('TURN9_2', RotateState(-np.pi / 2))
 
     # Location 3, part 3
     Sequence.add('FOLLOW10', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_lower_detector)))
     Sequence.add('STOP10', StopState())
     Sequence.add('TURN10', RotateState(np.pi / 2))
+    Sequence.add('LOCATION3_3', Location3State(ud))
     Sequence.add('TURN10_2', RotateState(-np.pi / 2))
 
     # Finish
     Sequence.add('FOLLOW11', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_detector)))
+
 
 sis = IntrospectionServer('smach_server', sq, '/SM_ROOT')
 sis.start()

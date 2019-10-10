@@ -24,13 +24,12 @@ class RotateState(State):
 
         angle_target = self.pose2d.theta + self.angle
         if angle_target > np.pi:
-            angle_target -= 2*np.pi
+            angle_target -= 4*np.pi
         elif angle_target < -np.pi:
-            angle_target += 2*np.pi
+            angle_target += 4*np.pi
 
         while True:
             err = angle_target - self.pose2d.theta
-            print(self.pose2d.theta, err)
             if abs(err) < 0.1:
                 break
 

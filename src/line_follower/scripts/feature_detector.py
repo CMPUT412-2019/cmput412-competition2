@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 from typing import List, Tuple
 import rospy
+
+import sys, os
+sys.path.append(os.path.abspath('../../../devel/.private/line_follower/lib/python2.7/dist-packages/line_follower/srv'))
+
 from line_follower.srv import CamPixelToPoint
 from geometry_msgs.msg import PointStamped, Vector3
 from tf.listener import TransformListener
@@ -60,7 +64,7 @@ class FeatureDetector:
             print(boxes)
             features[col] = [[] for _ in boxes]
 
-        duration = 5
+        duration = 0.5
         rate = rospy.Rate(10)
         start_time = rospy.get_time()
         while not rospy.is_shutdown() and rospy.get_time() - start_time < duration:
