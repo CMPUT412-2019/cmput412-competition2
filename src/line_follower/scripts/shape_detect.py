@@ -41,11 +41,11 @@ def main():
             print(feature.centroid+offset)
             image = cv2.putText(
                 image,
-                '{} {}'.format(feature.colour, feature.shape),
+                '{}'.format(feature.shape),
                 tuple(int(x) for x in feature.centroid+offset),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1.0,
-                (0, 0, 0),
+                FeatureDetector.col_name_to_rgb(feature.colour),
             )
             col = FeatureDetector.col_name_to_rgb(feature.colour)
             cv2.drawContours(image, [feature.contour], -1, col, 5)
