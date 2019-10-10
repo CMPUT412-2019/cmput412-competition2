@@ -6,6 +6,7 @@ from smach import State
 import cv2
 import cv_bridge
 import numpy as np
+import time
 
 
 class TransitionBehaviour:
@@ -24,20 +25,19 @@ class TransitionAfter(TransitionBehaviour):
         TransitionBehaviour.__init__(self)
 
         self.func = func
-        self.transitioning = False
+        self.last_seen = None
 
     def init(self):
-        self.transitioning = False
+        self.last_seen = None
 
     def tick(self, hsv):
-        transitioning = self.func(hsv)
+        seen = self.func(hsv)
 
-        if self.transitioning and not transitioning:
-            self.transitioning = False
-            return True
-        else:
-            self.transitioning = transitioning
+        if seen:
+            self.last_seen = time.time()
             return False
+        elif self.last_seen is not None and time.time() - self.last_seen > 0.5:
+            return True
 
 
 class TransitionAt(TransitionBehaviour):

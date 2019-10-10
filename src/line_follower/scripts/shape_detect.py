@@ -24,7 +24,12 @@ def main():
         image = main.image
         if image is None:
             continue
-        features = []
+
+        rospy.sleep(1)
+        image = main.image
+
+
+
         try:
             features = feature_detector.get_features()
             # features = filter_by_distance(features, 1.0)

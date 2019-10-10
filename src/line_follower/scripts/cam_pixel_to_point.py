@@ -32,7 +32,9 @@ class CamPixelToPointServer:
 
     def handle_service(self, req):  # type: (CamPixelToPoint) -> CamPixelToPointResponse
         x, y = int(req.cam_pixel.x), int(req.cam_pixel.y)
-        methods = [self.read_depth_simple, self.read_depth_average, self.read_depth_as_floor_depth]
+        methods = [self.read_depth_simple,
+                   # self.read_depth_average,
+                   self.read_depth_as_floor_depth]
         for method in methods:
             d = method(x, y)
             if not np.isnan(d):
@@ -73,6 +75,8 @@ class CamPixelToPointServer:
         ray_dir = point_along_ray - camera_origin
         # Assuming this transformation was orthogonal, |ray_dir| = 1, at least approximately
         d = camera_origin[1]/max(-ray_dir[1], camera_origin[1]/min_distance)
+        if d <= 0.01:
+            d = np.nan
         return d
 
 

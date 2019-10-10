@@ -38,7 +38,10 @@ def make_tracker(tracker_type):  # type: (str) -> Any
 
 class FeatureDetector:
     def convert_image(self, msg):
-        return self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        # return cv2.medianBlur(self.bridge.imgmsg_to_cv2(msg, 'bgr8'), 5)
+        image = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        cv2.normalize(image.astype(float), image)
+        return image.astype(np.uint8)
 
     def __init__(self):
         self.bridge = cv_bridge.CvBridge()
@@ -49,6 +52,9 @@ class FeatureDetector:
         }
 
     def get_features(self):  # type: () -> List[Feature]
+        _ = self.image.value
+        rospy.sleep(2)
+
         trackers = {col: cv2.MultiTracker_create() for col in self.masks.keys()}
         image = self.image.value
         features = {}
@@ -62,8 +68,8 @@ class FeatureDetector:
             print(boxes)
             features[col] = [[] for _ in boxes]
 
-        duration = 0.5
-        rate = rospy.Rate(10)
+        duration = 2
+        rate = rospy.Rate(100)
         start_time = rospy.get_time()
         while not rospy.is_shutdown() and rospy.get_time() - start_time < duration:
             image = self.image.value
@@ -72,6 +78,9 @@ class FeatureDetector:
                 try:
                     track_image = cv2.cvtColor(mask.astype(np.uint8) * 255, cv2.COLOR_GRAY2BGR)
                     success, boxes = trackers[col].update(track_image)
+
+                    boxes = [(box[0] - 10, box[1] - 10, box[2] + 20, box[3] + 20) for box in boxes]
+
                     print(success, boxes)
                     for box in boxes:
                         x, y, w, h = (int(v) for v in box)
@@ -84,12 +93,25 @@ class FeatureDetector:
                     for feature in features_found:
                         if feature is not None:
                             show_image = cv2.drawContours(show_image, [feature.contour], -1, (255, 255, 0), 5)
+
+                            col = self.col_name_to_rgb(feature.colour)
+                            print(col)
+                            show_image = cv2.putText(
+                                show_image,
+                                '{}'.format(feature.shape),
+                                tuple(int(x) for x in feature.centroid),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                1.0,
+                                col,
+                            )
                 except Exception as err:
                     print(err)
             cv2.imshow('image', show_image)
             cv2.waitKey(3)
 
             rate.sleep()
+
+        # cv2.waitKey(0)
         print(features)
         features = sum(([self._combine_features(f) for f in features[col]] for col in self.masks.keys()), [])
         return [f for f in features if f is not None]
@@ -105,6 +127,10 @@ class FeatureDetector:
         re = features[0]
         # https://stackoverflow.com/a/1518632
         re.shape = max(set(shapes), key=shapes.count)
+        print('*****************************')
+        print(float(len([s for s in shapes if s == 'circle']))/float(len(shapes)))
+        if re.shape == 'square' and float(len([s for s in shapes if s == 'circle']))/float(len(shapes)) > .20:
+            re.shape = 'circle'
         re.colour = max(set(cols), key=cols.count)
         return re
 
@@ -130,10 +156,6 @@ class FeatureDetector:
 
         for box in boxes:
             x, y, w, h = (int(v) for v in box)
-            x -= 10
-            y -= 10
-            w += 20
-            h += 20
             box_mask = np.zeros(shape=mask.shape[:2], dtype=bool)
             box_mask[y:y+h, x:x+w] = True
             masked_image = mask & box_mask
@@ -227,6 +249,22 @@ class FeatureDetector:
                     continue
                 features.append(Feature(shape, col, centroid, contour))
         return features
+
+
+def feature_depths(features):
+    cam_pixel_to_point = rospy.ServiceProxy('cam_pixel_to_point', CamPixelToPoint)
+    tf_listener = TransformListener()
+    depths = []
+    for feature in features:
+        cam_pos = Vector3()
+        cam_pos.x, cam_pos.y = feature.centroid[0], feature.centroid[1]
+        point = cam_pixel_to_point(cam_pos).point  # type: PointStamped
+        tf_listener.waitForTransform('camera_link', point.header.frame_id, rospy.Time(rospy.get_time()),
+                                     rospy.Duration(1))
+        point = tf_listener.transformPoint('camera_link', point)
+        depths.append(np.linalg.norm([point.point.x, point.point.y, point.point.z]))
+
+    return depths
 
 
 def filter_by_distance(features, max_distance):  # type: (List[Feature], float) -> List[Feature]
