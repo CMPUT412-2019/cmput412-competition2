@@ -46,7 +46,9 @@ class FeatureDetector:
 
     def get_features(self):  # type: () -> List[Feature]
         trackers = {col: cv2.MultiTracker_create() for col in self.masks.keys()}
-        image = self.image.value
+        # Wait for image to warm up
+        image = self.image.wait_for_n_messages(10)
+
         features = {}
 
         for col, mask in self._split_image_into_masks(image).items():
@@ -65,6 +67,7 @@ class FeatureDetector:
             image = self.image.value
             show_image = image
             for col, mask in self._split_image_into_masks(image).items():
+                cv2.imshow('{} mask'.format(col), mask.astype(np.uint8) * 255)
                 try:
                     track_image = cv2.cvtColor(mask.astype(np.uint8) * 255, cv2.COLOR_GRAY2BGR)
                     success, boxes = trackers[col].update(track_image)
