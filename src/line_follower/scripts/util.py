@@ -5,6 +5,7 @@ from kobuki_msgs.msg import Led
 import playsound
 import numpy as np
 import time
+from os import path
 
 
 class SubscriberValue:
@@ -64,11 +65,11 @@ def led(msg):  # type: (str) -> None
 
 def notify_count(count):
     led(['b1b2', 'b1b2', 'g1b2', 'g1g2'][count])
-    playsound.playsound('../../../sound/{}.mp3'.format(count), block=True)
+    playsound.playsound(path.join(path.dirname(__file__), '../../../sound/{}.mp3'.format(count)), block=True)
     led('b1b2')
 
 
 def notify_match():
     led('r1r2')
-    playsound.playsound('../../../sound/match.mp3', block=True)
+    playsound.playsound(path.join(path.dirname(__file__), '../../../sound/match.mp3'), block=True)
     led('b1b2')
