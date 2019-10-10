@@ -22,7 +22,7 @@ class UserData:
         self.green_shape = None
 
 
-forward_speed = 0.4
+forward_speed = 0.8
 kp = 4.
 ki = 0.
 kd = 0.
@@ -78,19 +78,19 @@ with sq:
 
     # Forward until split
     Sequence.add('FOLLOW2', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_detector)))
-    Sequence.add('STOP2', StopState(1))
+    Sequence.add('STOP2', StopState())
     Sequence.add('FOLLOW3', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter,  TransitionAt(red_detector)))
     Sequence.add('FORWARD3', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), red_filter, TransitionAfter(red_detector)))
     Sequence.add('COAST3', StopState())
 
     # Turn at split
-    Sequence.add('TURN3', RotateState(np.pi/4))
+    Sequence.add('TURN3', RotateState(np.pi/2 * 2/3))
 
     # Forward until location 2
     Sequence.add('FOLLOW4', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAt(proximity_detector)))
 
     # Location 2
-    Sequence.add('STOP4', StopState(1))
+    Sequence.add('STOP4', StopState())
     Sequence.add('LOCATION2', Location2State(ud))
     Sequence.add('TURN4', RotateState(np.pi))
 
@@ -104,27 +104,27 @@ with sq:
 
     # Forward until location 3
     Sequence.add('FOLLOW6', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_detector)))
-    Sequence.add('STOP6', StopState(1))
+    Sequence.add('STOP6', StopState())
     Sequence.add('FOLLOW7', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_lower_detector)))
-    Sequence.add('STOP7', StopState(1))
+    Sequence.add('STOP7', StopState())
 
     # Location 3, part 1
     Sequence.add('FOLLOW8', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_lower_detector)))
-    Sequence.add('STOP8', ForwardState(forward_speed))
+    Sequence.add('STOP8', StopState())
     Sequence.add('TURN8', RotateState(np.pi / 2))
     Sequence.add('LOCATION3_1', Location3State(ud))
     Sequence.add('TURN8_2', RotateState(-np.pi / 2))
 
     # Location 3, part 2
     Sequence.add('FOLLOW9', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_lower_detector)))
-    Sequence.add('STOP9', ForwardState(forward_speed))
+    Sequence.add('STOP9', StopState())
     Sequence.add('TURN9', RotateState(np.pi / 2))
     Sequence.add('LOCATION3_2', Location3State(ud))
     Sequence.add('TURN9_2', RotateState(-np.pi / 2))
 
     # Location 3, part 3
     Sequence.add('FOLLOW10', LineFollowState(forward_speed, PIDController(kp=kp, ki=ki, kd=kd), white_filter, TransitionAfter(red_lower_detector)))
-    Sequence.add('STOP10', ForwardState(forward_speed))
+    Sequence.add('STOP10', StopState())
     Sequence.add('TURN10', RotateState(np.pi / 2))
     Sequence.add('LOCATION3_3', Location3State(ud))
     Sequence.add('TURN10_2', RotateState(-np.pi / 2))
