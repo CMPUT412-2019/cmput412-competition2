@@ -116,9 +116,27 @@ Provides a service to convert depth camera (x,y) pixels to points in the correct
 
 #### Services
 
-- cam_pixel_to_point (`CamPixelToPoint`): given the x,y coordinates of a camera pixel (z is ignored), returns the corresponding point in 3D space.
+- cam_pixel_to_point (`line_follower/CamPixelToPoint`): given the x,y coordinates of a camera pixel (z is ignored), returns the corresponding point in 3D space.
 
         geometry_msgs/Vector3 cam_pixel
         ---
         geometry_msgs/PointStamped point
 
+
+### competition2
+
+Contains the main `smach` state machine which moves the robot.
+
+#### Subscribed topics
+
+- usb_cam_node/image_raw (`sensor_msgs/Image`): Image from the bottom camera (usb webcam)
+- /camera/rgb/image_raw (`sensor_msgs/Image`): RGB image from main camera (RGB-D camera)
+- pose2d (`geometry_msgs/Pose2D`): Robot pose in the `odom` frame
+
+#### Published topics
+
+- cmd_vel_mux/input/teleop (`geometry_msgs/Twist`): Twist messages to control the robot
+
+#### Services called
+
+- cam_pixel_to_point (`line_follower/CamPixelToPoint`): Used to convert camera pixels from the main camera to points in 3d space
