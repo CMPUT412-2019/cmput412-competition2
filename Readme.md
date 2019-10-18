@@ -89,3 +89,32 @@ and then resuming line-following until the robot begins seeing a red line (the r
 Then, to move to the intersection, we can simply run the line-following code to follow the red line until we can no
 longer see it, and then turn left and resume following the white line.
 * The rest of the course is traversed in a similar way. See `competition2.py` for additional details.
+
+## Nodes
+
+### cam_pixel_to_point
+
+Provides a service to convert depth camera (x,y) pixels to points in the correct camera frame. The service uses the following structure
+
+#### Parameters
+
+- ~in_sim (`bool`): `true` iff node is launched from the simulator.
+
+
+#### Subscribed topics
+
+- /camera/depth_registered/image_raw (`sensor_msgs/Image`): Camera depth image. If `in_sim` is `true`, use /camera/depth/image_raw instead.
+- /camera/rgb/camera_info (`sensor_msgs/CameraInfo`): Camera info for the rgb image.
+
+#### Required tf transforms
+
+- Requires a transform from the camera frame to `base_footprint`.
+
+#### Services
+
+- cam_pixel_to_point (`CamPixelToPoint`): given the x,y coordinates of a camera pixel (z is ignored), returns the corresponding point in 3D space.
+
+        geometry_msgs/Vector3 cam_pixel
+        ---
+        geometry_msgs/PointStamped point
+
