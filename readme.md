@@ -1,6 +1,6 @@
 # Line-follower
 
-*CMPUT412 competition 1*
+*CMPUT412 competition 2*
 
 ## Setup and building
 
