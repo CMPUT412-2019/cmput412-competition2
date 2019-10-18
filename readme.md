@@ -81,6 +81,8 @@ twist messages a short amount of time.
 At various points the robot needs to identify objects by colour/shape/distance. We use the back-mounted camera (which
 has depth information) for this task. First, red and green masks are made from the image by thresholding for pixels which are mostly red or green. Contours are extracted and simplified from each mask, and shapes are identified by counting the number of vertices in each contour. Since there may occasionally be errors in classification these objects are tracked across several frames using OpenCV's object tracking API. Each object is classified based on the most common shape it has across all frames gathered (with the exception of circles - if an object is classified as a circle more than 20% of the time, but as a square more than 50% of the time, it is considered to be a circle instead of a square). For each object we can then find its real-world position and apply various filtering operations.
 
+![](images/shape-detect.gif)
+
 ### Combining components
 These components are combined as follows:
 * The first task the robot must accomplish is to follow a white line until it arrives at an intersecting red line,
