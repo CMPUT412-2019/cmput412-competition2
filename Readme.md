@@ -8,7 +8,11 @@ The project requires ROS Kinetic with the various `turtlebot` and `openni2` pack
 
     pip install gTTS
 
-The code runs on a Turtlebot 2 with the RGB-D camera in its default position. In addition, a webcam must be placed at the front of the robot, looking down:
+The code runs on a Turtlebot 2 with the RGB-D camera in its default position, as shown:
+
+![](images/rgbd.jpg)
+ 
+In addition, a webcam must be placed at the front of the robot, looking down:
 
 ![](images/usb-cam.jpg)
 
