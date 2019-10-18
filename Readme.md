@@ -47,3 +47,45 @@ This launches everything except the main state machine. To run this, open a new 
 
 ## Method
 
+The project uses a number of components:
+
+### Line following
+For line following we use the front-mounted camera, which faces directly at the line: We extract a boolean mask
+representing the expected colour of the line (usually white) and locate our movement target by finding the center
+of mass of this mask. The robot then moves forward at a constant speed, turning to keep the movement target at the
+center of the image (here we use proportional control).
+
+### Changing state at red lines
+At various points there are red lines intersecting the white line the robot is following. The robot has to change state
+at these lines. For this purpose, we keep track of the red pixels seen by the front-mounted camera, and change state
+either when the robot sees 300 or more of these pixels for the first time (if we want to transition as soon as we can
+see a red shape), or when the robot has seen 300 or more of these pixels at one point, but stops seeing them for at
+least 0.5 seconds (if we want to transition when the robot stops seeing a red shape).
+
+### Turning
+There are times when the robot needs to turn by a specific angle (e.g. turn right by 90 degrees). To do this we have a
+seperate state that turns the robot using capped proportional control (using the robot's odometry to find the control
+target).
+
+### Stopping
+At certain points the robot has to stop temporarily. To accomplish this we simply have a state that sends zero-velocity
+twist messages a short amount of time.
+
+### Identifying objects
+At various points the robot needs to identify objects by colour/shape/distance. We use the back-mounted camera (which
+has depth information) for this task.
+
+### Combining components
+These components are combined as follows:
+* The first task the robot must accomplish is to follow a white line until it arrives at an intersecting red line,
+whereupon it turns 90 degrees to the left and counts the number of red objects it sees within 1 m. This is
+accomplished by line following as described above, transitioning into a turn state when the robot stops seeing a red
+shape. When the robot stops turning, it extracts the objects in the scene, filters them for redness and distance <= 1 m,
+and outputs the count.
+* Next, the robot must continue along the line, temporarily stopping when it arrives at a red intersecting line, and
+then, when it arrives at a split in the white line (marked by another red line), it takes the path to the left. This
+is accomplished by running line-following until the robot stops seeing a red object, then stopping the robot temporarily,
+and then resuming line-following until the robot begins seeing a red line (the red line that marks the intersection).
+Then, to move to the intersection, we can simply run the line-following code to follow the red line until we can no
+longer see it, and then turn left and resume following the white line.
+* The rest of the course is traversed in a similar way. See `competition2.py` for additional details.
